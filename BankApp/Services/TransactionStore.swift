@@ -5,8 +5,8 @@ import Observation
 final class TransactionStore {
     private(set) var transactions: [Transaction]
 
-    init(transactions: [Transaction] = MockTransactionProvider.makeTransactions()) {
-        self.transactions = transactions.sorted { $0.date > $1.date }
+    init(transactions: [Transaction] = MockTransactionProvider.transactions) {
+        self.transactions = transactions
     }
 
     func transaction(id: Transaction.ID) -> Transaction? {

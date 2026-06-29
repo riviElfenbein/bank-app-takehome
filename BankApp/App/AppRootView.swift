@@ -1,3 +1,4 @@
+import BankDesignSystem
 import SwiftUI
 
 struct AppRootView: View {
@@ -11,6 +12,7 @@ struct AppRootView: View {
                 }
         }
         .environment(store)
+        .dsKeyboardDoneToolbar()
     }
 }
 

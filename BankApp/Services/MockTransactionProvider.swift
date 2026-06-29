@@ -9,6 +9,8 @@ enum MockTransactionProvider {
         "Salary Deposit", "Freelance Client", "City Utilities", "Rent Payment"
     ]
 
+    static let transactions: [Transaction] = makeTransactions()
+
     static func makeTransactions(referenceDate: Date = .now) -> [Transaction] {
         let exemplar = makeExemplarTransaction()
         let bulk = generateBulk(count: 120, referenceDate: referenceDate)

@@ -14,11 +14,7 @@ struct Money: Hashable, Sendable {
     }
 
     var formatted: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = amount.isWholeNumber ? 0 : 2
-        formatter.maximumFractionDigits = 2
-
+        let formatter = Self.formatter(forWholeNumbers: amount.isWholeNumber)
         let number = amount as NSDecimalNumber
         let absolute = abs(number.decimalValue)
         let formattedNumber = formatter.string(from: absolute as NSDecimalNumber) ?? "\(absolute)"
@@ -30,6 +26,26 @@ struct Money: Hashable, Sendable {
             return "-\(formattedNumber)$"
         }
         return "\(formattedNumber)$"
+    }
+
+    private static let wholeNumberFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 2
+        return formatter
+    }()
+
+    private static let decimalFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        return formatter
+    }()
+
+    private static func formatter(forWholeNumbers isWholeNumber: Bool) -> NumberFormatter {
+        isWholeNumber ? wholeNumberFormatter : decimalFormatter
     }
 }
 
