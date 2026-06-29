@@ -44,7 +44,7 @@ Documentation has been expanded beyond a typical take-home to include architectu
 | 5–6 | Core works; significant gaps undocumented |
 | 1–4 | Incomplete or misleading |
 
-**Rationale:** Core requirement implemented correctly after mock data fix. Architecture is coherent and documented. Deductions for: no test target, incomplete protocol DI, silent validation UX, and iOS 26-only constraint.
+**Rationale:** Core requirement implemented with presentation-driven architecture and 10K AsyncStream loading. Deductions for: no test target, incomplete protocol DI, silent validation UX, and iOS 26-only constraint.
 
 ---
 
@@ -153,8 +153,8 @@ Detailed retrospective: [LESSONS_LEARNED.md](LESSONS_LEARNED.md)
 
 **Key points:**
 
-- Most architecture was inferable from code; mock count required developer confirmation
-- Documentation benefited from structured audit before generation
+- Most architecture is inferable from code; scale loading required explicit design (D30)
+- Documentation benefited from focusing public docs on architecture and decisions
 - AI accelerated implementation and drafting; scope trim and QA required human judgement
 - Confidence labels prevent overstating certainty on parse UX and protocol DI
 

@@ -4,6 +4,16 @@
 
 A SwiftUI banking app (iOS 26) with a long transactions list and a detail screen where the recipient name can be edited and immediately reflected in the list.
 
+## For Reviewers
+
+Start here — most reviewers need only this page plus one architecture doc.
+
+1. **Run** — open `BankApp.xcworkspace`, iOS 26 Simulator, ⌘R
+2. **Demo** — watch 10K load progress → scroll → open detail → edit **Name of the recipient** → back → name updates in list
+3. **Architecture** — [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (layers, AsyncStream loading, edit flow)
+4. **Key decisions** — [docs/ENGINEERING_DECISIONS.md](docs/ENGINEERING_DECISIONS.md) — see **D5** (observable store), **D6** (draft/commit), **D30** (10K AsyncStream)
+5. **Known gaps** — no unit tests; models type concrete `TransactionStore`; silent parse on invalid input; 4 unused DS components from scoped-out Figma screens
+
 ## Requirements Implemented
 
 - SwiftUI, iOS 26 deployment target
@@ -57,21 +67,19 @@ AppRootView  (composition root)
         └── TransactionDetailView     → TransactionDetailModel → commit() → TransactionStore
 ```
 
-> Presentation models currently depend on concrete `TransactionStore` (protocol DI incomplete). See [docs/ENGINEERING_DECISIONS.md](docs/ENGINEERING_DECISIONS.md).
+> Presentation models currently depend on concrete `TransactionStore` (protocol DI incomplete). See [docs/ENGINEERING_DECISIONS.md](docs/ENGINEERING_DECISIONS.md) D13.
 
 ## Documentation
 
 | Document | Purpose |
 |----------|---------|
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | As-built architecture |
-| [ENGINEERING_DECISIONS.md](docs/ENGINEERING_DECISIONS.md) | Decision log with confidence labels |
-| [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | BankDesignSystem package |
-| [DEVELOPMENT_PROCESS.md](docs/DEVELOPMENT_PROCESS.md) | How the project was built |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | As-built architecture and scale |
+| [ENGINEERING_DECISIONS.md](docs/ENGINEERING_DECISIONS.md) | Decision log (start with D5, D6, D30) |
 | [AI_USAGE.md](docs/AI_USAGE.md) | AI collaboration transparency |
+| [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | BankDesignSystem package |
 | [ROADMAP.md](docs/ROADMAP.md) | Intentional debt and future work |
-| [REVIEW_LOG.md](docs/REVIEW_LOG.md) | Manual review record |
-| [ENGINEERING_REPORT.md](docs/ENGINEERING_REPORT.md) | Submission assessment |
-| [LESSONS_LEARNED.md](docs/LESSONS_LEARNED.md) | Process retrospective |
+
+Additional process docs (`DEVELOPMENT_PROCESS`, `REVIEW_LOG`, etc.) live under `docs/` but are not required for review.
 
 ## Project Structure
 
@@ -118,17 +126,14 @@ This project was built with AI assistance as permitted by the assignment. Full t
 | **5. App implementation** | Models, store, list & detail screens, navigation, previews | Cursor (Agent mode) | Cursor Agent (Composer) |
 | **6. Long transaction list** | AsyncStream batch loader — 10K items (500 per batch) | Cursor (Agent mode) | Cursor Agent (Composer) |
 | **7. Build verification** | Compile checks on iOS Simulator | **Xcode 26** — `xcodebuild` | — |
-| **8. Documentation & audit** | Engineering docs, audit, submission package | Cursor (Agent mode) | Cursor Agent (Composer) |
+| **8. Documentation** | Architecture, decisions, README | Cursor (Agent mode) | Cursor Agent (Composer) |
 | **9. GitHub publish** | Repository hosting | **Git** + **GitHub CLI** | — |
 
 ### Manual Review (by developer)
 
 - Simulator smoke test: progressive 10K load, scroll during load, edit name, verify list update on back
 - Scope decisions: omitted transfer/success screens from Figma (out of assignment scope)
-- Mock data count: 10,000 items via AsyncStream batches
-- Final README and documentation review
-
-See [docs/REVIEW_LOG.md](docs/REVIEW_LOG.md).
+- Final README and architecture docs reviewed before submission
 
 ### External Services Used
 

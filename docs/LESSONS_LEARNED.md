@@ -68,7 +68,7 @@ High-confidence decisions derivable without developer interview:
 | **Unused DS components** | Could be dead code or intentional backlog |
 | **AI rejection stories** | Not recorded in code — only in developer memory / README |
 
-**Developer confirmed (2026-06-29):** Mock count was a bug → restored 120 bulk items.
+**Developer decisions during build:** Two-screen scope trim; 10K AsyncStream loading for scale demonstration; all detail fields editable.
 
 **Not confirmed in interview batch:** Protocol DI, parse UX, unused DS — documented with confidence labels, not fabricated quotes.
 
@@ -149,7 +149,7 @@ High-confidence decisions derivable without developer interview:
 3. **One conflict at a time in interview** — or explicit batch with "not selected = not confirmed"
 4. **Single source of truth map** — reduces duplication across README and docs/
 5. **Separate code-fix approval from doc generation** — mock count fix required explicit confirmation
-6. **Keep internal working docs** (`_AUDIT_BRIEF`, `_INTERVIEW_NOTES`) out of public TOC
+6. **Keep public README focused** — link only architecture, decisions, AI usage, design system, roadmap
 7. **Archive migration docs** — don't leave pre/post migration in same file marked "complete"
 
 ---
@@ -159,4 +159,4 @@ High-confidence decisions derivable without developer interview:
 - [ENGINEERING_REPORT.md](ENGINEERING_REPORT.md) — submission assessment
 - [AI_USAGE.md](AI_USAGE.md) — transparency policy
 - [DEVELOPMENT_PROCESS.md](DEVELOPMENT_PROCESS.md) — full process
-- [\_INTERVIEW\_NOTES.md](_INTERVIEW_NOTES.md) — interview record (internal)
+- [ENGINEERING_DECISIONS.md](ENGINEERING_DECISIONS.md) — decision log

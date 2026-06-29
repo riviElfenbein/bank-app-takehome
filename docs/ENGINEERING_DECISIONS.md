@@ -28,7 +28,7 @@ Staff iOS engineers, reviewers, and future contributors.
 | **Inferred — medium confidence** | Reasonable inference; may need validation |
 | **Requires confirmation** | Documented intent incomplete or deferred |
 
-Developer confirmation overrides inference. See [\_INTERVIEW\_NOTES.md](_INTERVIEW_NOTES.md) (internal).
+Developer confirmation overrides inference where noted in decision entries.
 
 ---
 
@@ -331,7 +331,7 @@ Developer confirmation overrides inference. See [\_INTERVIEW\_NOTES.md](_INTERVI
 | **Decision** | 1 Figma exemplar + 9,999 generated items; streamed in batches of 500; previews use 50-item sync subset |
 | **Problem** | Assignment long-list verification at scale |
 | **Evidence** | `TransactionLoadConfiguration.totalCount`; README mock data section |
-| **Note** | Supersedes previous 121-item count |
+| **Note** | Replaced earlier 121-item prototype with 10K AsyncStream loading |
 | **Confidence** | Confirmed by implementation |
 
 ---

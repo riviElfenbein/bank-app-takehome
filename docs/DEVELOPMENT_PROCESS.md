@@ -134,11 +134,11 @@ Nine-phase process for submission-quality documentation:
 | Phase | Status | Output |
 |-------|--------|--------|
 | 0 Discovery | Complete | Internal model |
-| 1 Engineering audit | Complete | `_AUDIT_BRIEF.md` |
+| 1 Engineering audit | Complete | Internal notes (removed from repo) |
 | 2 Knowledge extraction | Complete | `ENGINEERING_DECISIONS.md` |
-| 3 Architecture review | Complete | Drift analysis in audit |
+| 3 Architecture review | Complete | Drift analysis during doc pass |
 | 4 Documentation planning | Complete | Doc inventory in submission plan |
-| 5 Discovery interview | Complete | `_INTERVIEW_NOTES.md` |
+| 5 Discovery interview | Complete | Confirmations captured in `ENGINEERING_DECISIONS.md` |
 | 6 Documentation generation | Complete | Public docs in `docs/` |
 | 7 Consistency review | Complete | Cross-doc alignment |
 | 8 Submission review | Complete | `ENGINEERING_REPORT.md` |
