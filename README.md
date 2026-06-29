@@ -33,35 +33,57 @@ xcodebuild -project BankApp.xcodeproj -scheme BankApp \
 
 ## How to Verify the Core Requirement
 
-1. Launch the app — the **Transactions** screen shows **121+** items
-2. Scroll down and tap any transaction (including items deep in the list)
+1. Launch the app — UI appears immediately; a progress bar loads **10,000** transactions in batches
+2. Scroll during and after loading; tap any transaction (including items deep in the list)
 3. On the Details screen, edit **Name of the recipient**
 4. Navigate back — the updated name appears immediately in the list
 
-## Architecture
+## Architecture (Summary)
 
-- **`TransactionStore`** — `@Observable` single source of truth for `[Transaction]`
+Full details: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
+
+- **`TransactionLoader`** — `AsyncStream` batch loading protocol; **`MockTransactionLoader`** streams 10K mock transactions
+- **`TransactionRepository`** — persistence protocol; **`TransactionStore`** — `@MainActor` `@Observable` in-memory implementation with O(1) lookup
+- **Presentation models** — `TransactionsListModel`, `TransactionDetailModel` (draft state, formatting, `commit()`)
+- **`TransactionFormatters`** — shared presentation formatting (dates, money, status titles)
 - **`NavigationStack`** — value-based navigation using `Transaction.ID`
-- **`BankDesignSystem`** — local Swift Package with tokens (colors, typography, spacing) and reusable components
-- **Edit flow** — Detail screen writes to the store via `updateRecipientName`; Observation refreshes the list automatically
+- **`BankDesignSystem`** — local Swift Package with tokens and reusable components
+- **Edit flow** — Detail screen drafts edits in `TransactionDetailModel`; `commit()` on navigation back updates the store; list row cache patches via `dataRevision`
 
 ```
-AppRootView
+AppRootView  (composition root)
   └── NavigationStack
-        ├── TransactionsListView   (reads store)
-        └── TransactionDetailView  (mutates store via Binding)
+        ├── TransactionsListView      → TransactionsListModel → AsyncStream load → TransactionStore
+        └── TransactionDetailView     → TransactionDetailModel → commit() → TransactionStore
 ```
+
+> Presentation models currently depend on concrete `TransactionStore` (protocol DI incomplete). See [docs/ENGINEERING_DECISIONS.md](docs/ENGINEERING_DECISIONS.md).
+
+## Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | As-built architecture |
+| [ENGINEERING_DECISIONS.md](docs/ENGINEERING_DECISIONS.md) | Decision log with confidence labels |
+| [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | BankDesignSystem package |
+| [DEVELOPMENT_PROCESS.md](docs/DEVELOPMENT_PROCESS.md) | How the project was built |
+| [AI_USAGE.md](docs/AI_USAGE.md) | AI collaboration transparency |
+| [ROADMAP.md](docs/ROADMAP.md) | Intentional debt and future work |
+| [REVIEW_LOG.md](docs/REVIEW_LOG.md) | Manual review record |
+| [ENGINEERING_REPORT.md](docs/ENGINEERING_REPORT.md) | Submission assessment |
+| [LESSONS_LEARNED.md](docs/LESSONS_LEARNED.md) | Process retrospective |
 
 ## Project Structure
 
 ```
 bank/
 ├── BankApp.xcworkspace
+├── docs/                 Engineering documentation
 ├── BankApp/
 │   ├── App/              AppRootView
-│   ├── Features/         TransactionsList, TransactionDetail
+│   ├── Features/         TransactionsList, TransactionDetail, Shared
 │   ├── Models/           Transaction, Money, PaymentCard
-│   ├── Services/         TransactionStore, MockTransactionProvider
+│   ├── Services/         TransactionLoader, TransactionRepository, TransactionStore, MockTransactionProvider
 │   └── Preview Support/
 └── Packages/
     └── BankDesignSystem/ tokens + components
@@ -70,8 +92,10 @@ bank/
 ## Mock Data
 
 - **1** fixed Figma exemplar transaction (Alexander Dmitrievich V.)
-- **120** programmatically generated transactions (merchant names, amounts, dates spread over 365 days)
-- **Total: 121** items, sorted by date descending
+- **9,999** programmatically generated transactions (merchant names, amounts, dates spread over 365 days)
+- **Total: 10,000** items, sorted by date descending
+- Loaded via **`AsyncStream`** in batches of **500** (background generation, progressive UI)
+- Previews use a **50-item** sync subset — see `PreviewTransactionStore`
 
 ## Tech Stack
 
@@ -83,25 +107,28 @@ bank/
 
 ## AI & Tools Disclosure
 
-This project was built with AI assistance as permitted by the assignment. Below is a breakdown of **what was done**, **which tool**, and **which model** was used at each stage.
+This project was built with AI assistance as permitted by the assignment. Full transparency: **[docs/AI_USAGE.md](docs/AI_USAGE.md)**
 
 | Stage | Work Done | Tool | Model |
 |-------|-----------|------|-------|
 | **1. Architecture & planning** | Layer design, feature boundaries, state ownership, navigation strategy, implementation roadmap | [Cursor](https://cursor.com) (Plan mode) | Cursor Agent (Composer) |
-| **2. Design analysis** | Extracted colors, typography, components, and screen layout from the Figma file | Cursor + **Figma MCP** (`get_design_context`, `get_metadata`, `get_variable_defs`) | Cursor Agent (Composer) |
-| **3. Xcode project & workspace** | App target, iOS 26 settings, local package wiring, asset catalog | Cursor (Agent mode) + **Xcode 26** / `xcodebuild` | Cursor Agent (Composer) |
-| **4. Design System package** | Tokens (`DSColors`, `DSTypography`, …) and components (`DSLabeledRow`, `DSTransactionRow`, …) | Cursor (Agent mode) | Cursor Agent (Composer) |
-| **5. App implementation** | Models, `@Observable` store, list & detail screens, navigation, previews | Cursor (Agent mode) | Cursor Agent (Composer) |
-| **6. Long transaction list** | Refactored `MockTransactionProvider` — 1 Figma exemplar + 120 generated items | Cursor (Agent mode) | Cursor Agent (Composer) |
-| **7. Build verification** | Compile checks on iOS Simulator | **Xcode 26** — `xcodebuild` | — (local toolchain) |
-| **8. README & documentation** | Run instructions, architecture summary, AI disclosure (this file) | Cursor (Agent mode) | Cursor Agent (Composer) |
-| **9. GitHub publish** | `git init`, commit, push | **Git** + **GitHub CLI** (`gh repo create`) | — (local CLI) |
+| **2. Design analysis** | Extracted colors, typography, components, and screen layout from the Figma file | Cursor + **Figma MCP** | Cursor Agent (Composer) |
+| **3. Xcode project & workspace** | App target, iOS 26 settings, local package wiring, asset catalog | Cursor (Agent mode) + **Xcode 26** | Cursor Agent (Composer) |
+| **4. Design System package** | Tokens and components | Cursor (Agent mode) | Cursor Agent (Composer) |
+| **5. App implementation** | Models, store, list & detail screens, navigation, previews | Cursor (Agent mode) | Cursor Agent (Composer) |
+| **6. Long transaction list** | AsyncStream batch loader — 10K items (500 per batch) | Cursor (Agent mode) | Cursor Agent (Composer) |
+| **7. Build verification** | Compile checks on iOS Simulator | **Xcode 26** — `xcodebuild` | — |
+| **8. Documentation & audit** | Engineering docs, audit, submission package | Cursor (Agent mode) | Cursor Agent (Composer) |
+| **9. GitHub publish** | Repository hosting | **Git** + **GitHub CLI** | — |
 
 ### Manual Review (by developer)
 
-- Simulator smoke test: scroll long list, edit name, verify list update on back
+- Simulator smoke test: progressive 10K load, scroll during load, edit name, verify list update on back
 - Scope decisions: omitted transfer/success screens from Figma (out of assignment scope)
-- Final README review before submission
+- Mock data count: 10,000 items via AsyncStream batches
+- Final README and documentation review
+
+See [docs/REVIEW_LOG.md](docs/REVIEW_LOG.md).
 
 ### External Services Used
 
