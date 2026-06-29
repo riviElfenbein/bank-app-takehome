@@ -11,6 +11,7 @@
 		B10000000000000000000002 /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* AppRootView.swift */; };
 		B10000000000000000000003 /* TransactionsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000003 /* TransactionsListView.swift */; };
 		B10000000000000000000004 /* TransactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000004 /* TransactionDetailView.swift */; };
+		B10000000000000000000010 /* TransactionDetailModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000010 /* TransactionDetailModel.swift */; };
 		B10000000000000000000005 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000005 /* Transaction.swift */; };
 		B10000000000000000000006 /* TransactionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000006 /* TransactionStatus.swift */; };
 		B10000000000000000000007 /* PaymentCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000007 /* PaymentCard.swift */; };
@@ -28,6 +29,7 @@
 		F10000000000000000000002 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
 		F10000000000000000000003 /* TransactionsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsListView.swift; sourceTree = "<group>"; };
 		F10000000000000000000004 /* TransactionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionDetailView.swift; sourceTree = "<group>"; };
+		F10000000000000000000010 /* TransactionDetailModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionDetailModel.swift; sourceTree = "<group>"; };
 		F10000000000000000000005 /* Transaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transaction.swift; sourceTree = "<group>"; };
 		F10000000000000000000006 /* TransactionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionStatus.swift; sourceTree = "<group>"; };
 		F10000000000000000000007 /* PaymentCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentCard.swift; sourceTree = "<group>"; };
@@ -149,6 +151,7 @@
 		G1000000000000000000000B /* TransactionDetail */ = {
 			isa = PBXGroup;
 			children = (
+				F10000000000000000000010 /* TransactionDetailModel.swift */,
 				F10000000000000000000004 /* TransactionDetailView.swift */,
 			);
 			path = TransactionDetail;
@@ -234,6 +237,7 @@
 				B10000000000000000000002 /* AppRootView.swift in Sources */,
 				B10000000000000000000003 /* TransactionsListView.swift in Sources */,
 				B10000000000000000000004 /* TransactionDetailView.swift in Sources */,
+				B10000000000000000000010 /* TransactionDetailModel.swift in Sources */,
 				B10000000000000000000005 /* Transaction.swift in Sources */,
 				B10000000000000000000006 /* TransactionStatus.swift in Sources */,
 				B10000000000000000000007 /* PaymentCard.swift in Sources */,
