@@ -91,6 +91,10 @@ Primary model during implementation: **Cursor Agent (Composer)** per README disc
 
 ## Manual Review
 
+### AI-in-the-loop refactors
+
+Developer refactors code independently; AI reviews the diff, suggests an `ai-in-the-loop:` commit message, and proposes doc/rule updates when conventions change. Example: flattening `patchRow(for:)` led to `swift_avoid_nested_nesting.mdc`.
+
 From README manual review section:
 
 - Simulator smoke test: progressive 10K load, scroll during load, edit recipient name, verify list update on back

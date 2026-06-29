@@ -1,0 +1,97 @@
+---
+description: Avoid nested control flow and nested iteration in Swift
+globs:
+  - "**/*.swift"
+---
+
+# Avoid Nested Nesting
+
+Keep functions readable by limiting depth in **control flow** and **iteration**.
+
+## Control flow
+
+Prefer a flat, top-to-bottom sequence:
+
+1. Validate inputs (`guard` / early `return`).
+2. Compute shared state once.
+3. Branch on the main decision.
+4. Delegate side effects to named helpers.
+
+**Avoid:** `if` inside `if` inside `else` when each branch repeats the same cleanup or filter step.
+
+### Example (this project)
+
+`TransactionsListModel.patchRow(for:)` — update cache first, early-exit on search mismatch, then patch-or-filter:
+
+```swift
+// ✅ GOOD — flat flow
+if let cachedIndex = rowIndexByID[id] {
+    allRows[cachedIndex] = updatedRow
+}
+
+guard matchesSearch else {
+    applySearchFilter()
+    return
+}
+
+if let visibleIndex = rows.firstIndex(where: { $0.id == id }) {
+    rows[visibleIndex] = updatedRow
+} else {
+    applySearchFilter()
+}
+```
+
+```swift
+// ❌ AVOID — nested branches repeating applySearchFilter()
+if let cachedIndex = rowIndexByID[id] {
+    allRows[cachedIndex] = updatedRow
+    if matchesSearch {
+        if let visibleIndex = rows.firstIndex(where: { $0.id == id }) {
+            rows[visibleIndex] = updatedRow
+        } else {
+            applySearchFilter()
+        }
+    } else {
+        applySearchFilter()
+    }
+} else if matchesSearch {
+    applySearchFilter()
+}
+```
+
+**Heuristic:** more than two levels of `if`/`else`/`guard` nesting in one function → refactor with early returns or extract a helper.
+
+---
+
+## Iteration
+
+Prefer **O(n)** single passes and **index maps** over nested `for` loops.
+
+| Pattern | Prefer |
+|---------|--------|
+| Find + update by ID in a list | `[ID: Int]` index map (`rowIndexByID`, `indexByID` in `TransactionStore`) |
+| Filter / map / transform | `filter`, `map`, `reduce` on collections |
+| Stream batches | one outer `for await` / `for in`; no inner scan of the full collection per item |
+| Build index while appending | `enumerated()` once when constructing the map |
+
+```swift
+// ❌ AVOID — O(n²) scan per batch item
+for transaction in batch {
+    if let i = allRows.firstIndex(where: { $0.id == transaction.id }) {
+        allRows[i] = rowState(for: transaction)
+    }
+}
+
+// ✅ GOOD — O(1) lookup
+if let i = rowIndexByID[id] {
+    allRows[i] = updatedRow
+}
+```
+
+**When nested loops are acceptable:** small bounded inner sets (e.g. ≤3), or a documented unavoidable cross-product — add a one-line comment explaining why.
+
+---
+
+## Extraction trigger
+
+Extract a private helper when flattening would leave a function doing more than one conceptual job (e.g. "sync cache" vs "apply search visibility").

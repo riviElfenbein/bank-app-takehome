@@ -97,6 +97,7 @@ Enforced via `.cursor/rules/`:
 | `swiftui_view_responsibility.mdc` | Views are layout-only |
 | `swiftui_view_dependencies.mdc` | Views depend on models only; composition root owns infrastructure |
 | `swiftui_engine.mdc` | SwiftUI identity and lifetime guidance |
+| `swift_avoid_nested_nesting.mdc` | Flat control flow (early returns); index maps over nested iteration |
 
 Build settings:
 
