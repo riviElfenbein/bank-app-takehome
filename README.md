@@ -1,5 +1,7 @@
 # Banking App — Take-Home Assignment
 
+**Repository:** https://github.com/riviElfenbein/bank-app-takehome
+
 אפליקציית בנק ב-SwiftUI (iOS 26) עם רשימת transactions ארוכה ומסך פרטים עם עריכת שם.
 
 ## דרישות שמומשו
