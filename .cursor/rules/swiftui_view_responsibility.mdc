@@ -1,0 +1,55 @@
+---
+description: SwiftUI View Responsibility
+globs:
+  - "**/*.swift"
+---
+
+# SwiftUI View Responsibility
+
+## Principle
+
+A SwiftUI View is responsible for describing and composing UI.
+
+A View should remain declarative and contain as little business logic as possible.
+
+## A View MAY
+
+- Compose child views.
+- Read presentation state.
+- Bind to values exposed by a ViewModel or Presentation Model.
+- Trigger user actions.
+- Apply layout and Design System components.
+- Perform trivial UI-only transformations.
+
+## A View MUST NOT
+
+- Query repositories or stores.
+- Mutate repositories or stores directly.
+- Parse domain values.
+- Format domain values.
+- Validate business rules.
+- Construct business bindings.
+- Coordinate persistence.
+
+## Business Binding Code Smell
+
+`Binding(get:set:)` is an advanced API.
+
+If a custom binding:
+
+- reads from a Store or Repository,
+- writes to a Store or Repository,
+- performs parsing,
+- performs formatting,
+- performs validation,
+- contains business logic,
+
+then the binding belongs in a ViewModel or Presentation Model, not in the View.
+
+Views should consume bindings rather than construct business bindings.
+
+## Design Goal
+
+A View should be understandable by reading only its layout.
+
+Business behavior should be implemented outside the View.

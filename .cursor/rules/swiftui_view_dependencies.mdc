@@ -1,0 +1,115 @@
+---
+description: SwiftUI View Dependencies
+globs:
+  - "**/*.swift"
+---
+
+# SwiftUI View Dependencies
+
+See also [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) for layer ownership. See [docs/ENGINEERING_DECISIONS.md](../../docs/ENGINEERING_DECISIONS.md) D13 for repository protocol status.
+
+## Principle
+
+A View depends on its presentation layer — nothing else.
+
+A View's only business-facing dependency is its **ViewModel** or **Presentation Model** (`*Model`, `*ViewModel`).
+
+Infrastructure (Store, Repository, Service, Provider) belongs outside the View tree.
+
+---
+
+## A View MAY Hold
+
+- `@Bindable var model` / `let model` — the feature's ViewModel or Presentation Model.
+- `@State` for **UI-only** ephemeral state (sheet visibility, focus, animation phase, raw search field text before debounce).
+- Value types passed in for rendering (formatted strings, row snapshots, IDs used only for layout identity).
+- Child views and Design System components.
+
+---
+
+## A View MUST NOT Hold
+
+- `@Environment` of a Store, Repository, Service, or Provider.
+- Stored properties typed as Store, Repository, Service, or Provider.
+- Initializer parameters used to **construct** a ViewModel inside the View (e.g. `init(repository:transactionID:)` inside a View).
+- Domain models used as the source of truth for mutation (pass presentation state instead).
+
+If a View needs a Store to exist, it is the wrong place to create the ViewModel.
+
+---
+
+## Composition Root
+
+Only the **composition root** may access infrastructure and construct ViewModels:
+
+- `App` / root container views that own `@State` stores.
+- Navigation destinations that receive infrastructure and inject a ready-made model.
+
+```swift
+// Composition root — allowed
+.navigationDestination(for: Transaction.ID.self) { id in
+    TransactionDetailView(
+        model: TransactionDetailModel(repository: store, transactionID: id)
+    )
+}
+
+// Feature view — required shape
+struct TransactionDetailView: View {
+    @Bindable var model: TransactionDetailModel
+
+    var body: some View { /* layout only */ }
+}
+```
+
+---
+
+## Child Views
+
+Private subviews (`*Content`, row views, field groups) follow the same rule:
+
+- Consume `@Bindable var model`, presentation value types, or `@Binding` from the parent model.
+- Never re-introduce Store/Repository access at a lower level.
+
+---
+
+## Code Smells
+
+Reject or refactor when a View contains any of:
+
+```swift
+@Environment(TransactionStore.self) private var store
+@Environment(SomeRepository.self) private var repository
+
+init(store: TransactionStore, …) { … }
+
+private var filteredItems: [Item] {
+    store.items.filter { … }  // business query in View
+}
+```
+
+---
+
+## Previews
+
+Previews construct infrastructure **outside** the View under test, then inject a model:
+
+```swift
+#Preview {
+    TransactionDetailView(
+        model: TransactionDetailModel(
+            repository: PreviewTransactionStore.make(),
+            transactionID: PreviewData.sampleTransactionID
+        )
+    )
+}
+```
+
+Do not rely on `.environment(store)` to wire feature views in previews.
+
+---
+
+## Design Goal
+
+Open a View file and see **layout + model** — never **layout + store**.
+
+Dependency direction: `Infrastructure → ViewModel → View`.

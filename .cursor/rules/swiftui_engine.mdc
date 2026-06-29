@@ -1,0 +1,19 @@
+---
+description: SwiftUI Engine
+globs:
+  - "**/*.swift"
+---
+
+# SwiftUI Engine
+
+SwiftUI is driven by Identity, Lifetime and Dependencies.
+
+Before generating code:
+
+- Identify which views own state.
+- Preserve stable view identity whenever the domain object remains the same.
+- Prefer changing data over replacing view types.
+- Structural changes should represent domain changes.
+- Treat body recomputation as inexpensive.
+- Never optimize by avoiding body evaluation.
+- Avoid expensive work inside body.
