@@ -1,17 +1,20 @@
 import SwiftUI
 
 public struct DSTransactionRow: View {
+    private let merchantInitial: String
     private let recipientName: String
     private let subtitle: String
     private let formattedAmount: String
     private let isCredit: Bool
 
     public init(
+        merchantInitial: String,
         recipientName: String,
         subtitle: String,
         formattedAmount: String,
         isCredit: Bool = false
     ) {
+        self.merchantInitial = merchantInitial
         self.recipientName = recipientName
         self.subtitle = subtitle
         self.formattedAmount = formattedAmount
@@ -20,6 +23,8 @@ public struct DSTransactionRow: View {
 
     public var body: some View {
         HStack(alignment: .center, spacing: 12) {
+            DSIconBadge(merchantInitial: merchantInitial)
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(recipientName)
                     .font(DSTypography.title3())
@@ -40,7 +45,12 @@ public struct DSTransactionRow: View {
                 isCredit: isCredit
             )
         }
-        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, minHeight: DSSpacing.rowHeight, alignment: .center)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(DSColors.separator)
+                .frame(height: 1)
+        }
         .contentShape(Rectangle())
     }
 }
@@ -48,11 +58,13 @@ public struct DSTransactionRow: View {
 #Preview {
     List {
         DSTransactionRow(
+            merchantInitial: "A",
             recipientName: "Alexander Dmitrievich V.",
             subtitle: "Sep 12, 2022 · Completed",
-            formattedAmount: "100$"
+            formattedAmount: "-100$"
         )
         DSTransactionRow(
+            merchantInitial: "S",
             recipientName: "Salary Deposit",
             subtitle: "Sep 1, 2022 · Completed",
             formattedAmount: "+4,250$",
@@ -60,4 +72,6 @@ public struct DSTransactionRow: View {
         )
     }
     .listStyle(.plain)
+    .scrollContentBackground(.hidden)
+    .background(DSColors.grey)
 }

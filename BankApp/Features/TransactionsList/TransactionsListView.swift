@@ -15,14 +15,16 @@ struct TransactionsListView: View {
         List(store.transactions) { transaction in
             NavigationLink(value: transaction.id) {
                 DSTransactionRow(
+                    merchantInitial: merchantInitial(for: transaction),
                     recipientName: transaction.recipientName,
                     subtitle: subtitle(for: transaction),
                     formattedAmount: transaction.amount.formatted,
                     isCredit: transaction.amount.isCredit
                 )
             }
-            .listRowSeparatorTint(DSColors.separator)
-            .listRowBackground(DSColors.grey)
+            .listRowSeparator(.hidden)
+            .listRowBackground(DSColors.white)
+            .listRowInsets(EdgeInsets(top: 0, leading: DSSpacing.screenHorizontal, bottom: 0, trailing: DSSpacing.screenHorizontal))
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(transaction.recipientName), \(transaction.amount.formatted)")
             .accessibilityHint("View transaction details")
@@ -35,6 +37,11 @@ struct TransactionsListView: View {
 
     private func subtitle(for transaction: Transaction) -> String {
         "\(Self.dateFormatter.string(from: transaction.date)) · \(transaction.status.displayTitle)"
+    }
+
+    private func merchantInitial(for transaction: Transaction) -> String {
+        guard let first = transaction.recipientName.first else { return "?" }
+        return String(first).uppercased()
     }
 }
 
