@@ -2,28 +2,22 @@ import BankDesignSystem
 import SwiftUI
 
 struct TransactionsListView: View {
-    @Environment(TransactionStore.self) private var store
-    @State private var searchText = ""
-    @State private var debouncedSearchText = ""
-
-    private var filteredTransactions: [Transaction] {
-        guard !debouncedSearchText.isEmpty else { return store.transactions }
-        return store.transactions.filter {
-            $0.recipientName.localizedCaseInsensitiveContains(debouncedSearchText)
-        }
-    }
+    @Bindable var model: TransactionsListModel
 
     var body: some View {
         VStack(spacing: 0) {
             listHeader
 
-            TransactionListContent(transactions: filteredTransactions)
+            if model.isLoading {
+                loadingIndicator
+            }
+
+            TransactionListContent(rows: model.rowsForDisplay)
         }
         .dsScreenBackground()
         .toolbar(.hidden, for: .navigationBar)
-        .task(id: searchText) {
-            try? await Task.sleep(for: .milliseconds(200))
-            debouncedSearchText = searchText
+        .task(id: model.searchText) {
+            await model.applyDebouncedSearch()
         }
     }
 
@@ -37,7 +31,7 @@ struct TransactionsListView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(DSColors.labelSecondary)
 
-                TextField("Search transactions", text: $searchText)
+                TextField("Search transactions", text: $model.searchText)
                     .font(DSTypography.title4())
                     .foregroundStyle(DSColors.dark)
             }
@@ -52,53 +46,53 @@ struct TransactionsListView: View {
         .padding(.bottom, 12)
         .background(DSColors.grey)
     }
+
+    private var loadingIndicator: some View {
+        VStack(spacing: 8) {
+            ProgressView(value: Double(model.loadProgress), total: Double(model.loadTotal))
+                .tint(DSColors.dark)
+
+            if let label = model.loadProgressLabel {
+                Text(label)
+                    .font(DSTypography.caption())
+                    .foregroundStyle(DSColors.labelSecondary)
+            }
+        }
+        .padding(.horizontal, DSSpacing.screenHorizontal)
+        .padding(.bottom, 8)
+    }
 }
 
 private struct TransactionListContent: View {
-    let transactions: [Transaction]
-
-    private static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter
-    }()
+    let rows: [TransactionRowState]
 
     var body: some View {
-        List(transactions) { transaction in
-            NavigationLink(value: transaction.id) {
+        List(rows) { row in
+            NavigationLink(value: row.id) {
                 DSTransactionRow(
-                    merchantInitial: merchantInitial(for: transaction),
-                    recipientName: transaction.recipientName,
-                    subtitle: subtitle(for: transaction),
-                    formattedAmount: transaction.amount.formatted,
-                    isCredit: transaction.amount.isCredit
+                    merchantInitial: row.merchantInitial,
+                    recipientName: row.recipientName,
+                    subtitle: row.subtitle,
+                    formattedAmount: row.formattedAmount,
+                    isCredit: row.isCredit
                 )
             }
             .listRowSeparator(.hidden)
             .listRowBackground(DSColors.white)
             .listRowInsets(EdgeInsets(top: 0, leading: DSSpacing.screenHorizontal, bottom: 0, trailing: DSSpacing.screenHorizontal))
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(transaction.recipientName), \(transaction.amount.formatted)")
+            .accessibilityLabel("\(row.recipientName), \(row.formattedAmount)")
             .accessibilityHint("View transaction details")
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
     }
-
-    private func subtitle(for transaction: Transaction) -> String {
-        "\(Self.dateFormatter.string(from: transaction.date)) · \(transaction.status.displayTitle)"
-    }
-
-    private func merchantInitial(for transaction: Transaction) -> String {
-        guard let first = transaction.recipientName.first else { return "?" }
-        return String(first).uppercased()
-    }
 }
 
 #Preview {
     NavigationStack {
-        TransactionsListView()
+        TransactionsListView(
+            model: TransactionsListModel(repository: PreviewTransactionStore.make())
+        )
     }
-    .environment(PreviewTransactionStore.make())
 }

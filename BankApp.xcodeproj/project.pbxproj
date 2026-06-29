@@ -10,6 +10,7 @@
 		B10000000000000000000001 /* BankApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000001 /* BankApp.swift */; };
 		B10000000000000000000002 /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* AppRootView.swift */; };
 		B10000000000000000000003 /* TransactionsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000003 /* TransactionsListView.swift */; };
+		B10000000000000000000011 /* TransactionsListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000011 /* TransactionsListModel.swift */; };
 		B10000000000000000000004 /* TransactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000004 /* TransactionDetailView.swift */; };
 		B10000000000000000000010 /* TransactionDetailModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000010 /* TransactionDetailModel.swift */; };
 		B10000000000000000000005 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000005 /* Transaction.swift */; };
@@ -22,12 +23,17 @@
 		B1000000000000000000000C /* PreviewTransactionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000C /* PreviewTransactionStore.swift */; };
 		B1000000000000000000000D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000000D /* Assets.xcassets */; };
 		B1000000000000000000000E /* BankDesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = P100000000000000000000001 /* BankDesignSystem */; };
+		B10000000000000000000012 /* TransactionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000012 /* TransactionRepository.swift */; };
+		B10000000000000000000013 /* TransactionFormatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000013 /* TransactionFormatters.swift */; };
+		B10000000000000000000014 /* TransactionLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000014 /* TransactionLoader.swift */; };
+		B10000000000000000000015 /* TransactionLoadConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000015 /* TransactionLoadConfiguration.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		F10000000000000000000001 /* BankApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankApp.swift; sourceTree = "<group>"; };
 		F10000000000000000000002 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
 		F10000000000000000000003 /* TransactionsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsListView.swift; sourceTree = "<group>"; };
+		F10000000000000000000011 /* TransactionsListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsListModel.swift; sourceTree = "<group>"; };
 		F10000000000000000000004 /* TransactionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionDetailView.swift; sourceTree = "<group>"; };
 		F10000000000000000000010 /* TransactionDetailModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionDetailModel.swift; sourceTree = "<group>"; };
 		F10000000000000000000005 /* Transaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transaction.swift; sourceTree = "<group>"; };
@@ -40,6 +46,10 @@
 		F1000000000000000000000C /* PreviewTransactionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewTransactionStore.swift; sourceTree = "<group>"; };
 		F1000000000000000000000D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F1000000000000000000000E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F10000000000000000000012 /* TransactionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionRepository.swift; sourceTree = "<group>"; };
+		F10000000000000000000013 /* TransactionFormatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionFormatters.swift; sourceTree = "<group>"; };
+		F10000000000000000000014 /* TransactionLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionLoader.swift; sourceTree = "<group>"; };
+		F10000000000000000000015 /* TransactionLoadConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionLoadConfiguration.swift; sourceTree = "<group>"; };
 		F1000000000000000000000F /* BankApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BankApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -105,10 +115,19 @@
 		G10000000000000000000006 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				G1000000000000000000000C /* Shared */,
 				G1000000000000000000000A /* TransactionsList */,
 				G1000000000000000000000B /* TransactionDetail */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		G1000000000000000000000C /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000013 /* TransactionFormatters.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		G10000000000000000000007 /* Models */ = {
@@ -126,6 +145,9 @@
 			isa = PBXGroup;
 			children = (
 				F10000000000000000000009 /* TransactionStore.swift */,
+				F10000000000000000000012 /* TransactionRepository.swift */,
+				F10000000000000000000014 /* TransactionLoader.swift */,
+				F10000000000000000000015 /* TransactionLoadConfiguration.swift */,
 				F1000000000000000000000A /* MockTransactionProvider.swift */,
 			);
 			path = Services;
@@ -143,6 +165,7 @@
 		G1000000000000000000000A /* TransactionsList */ = {
 			isa = PBXGroup;
 			children = (
+				F10000000000000000000011 /* TransactionsListModel.swift */,
 				F10000000000000000000003 /* TransactionsListView.swift */,
 			);
 			path = TransactionsList;
@@ -236,6 +259,7 @@
 				B10000000000000000000001 /* BankApp.swift in Sources */,
 				B10000000000000000000002 /* AppRootView.swift in Sources */,
 				B10000000000000000000003 /* TransactionsListView.swift in Sources */,
+				B10000000000000000000011 /* TransactionsListModel.swift in Sources */,
 				B10000000000000000000004 /* TransactionDetailView.swift in Sources */,
 				B10000000000000000000010 /* TransactionDetailModel.swift in Sources */,
 				B10000000000000000000005 /* Transaction.swift in Sources */,
@@ -243,7 +267,11 @@
 				B10000000000000000000007 /* PaymentCard.swift in Sources */,
 				B10000000000000000000008 /* Money.swift in Sources */,
 				B10000000000000000000009 /* TransactionStore.swift in Sources */,
+				B10000000000000000000012 /* TransactionRepository.swift in Sources */,
+				B10000000000000000000013 /* TransactionFormatters.swift in Sources */,
 				B1000000000000000000000A /* MockTransactionProvider.swift in Sources */,
+				B10000000000000000000014 /* TransactionLoader.swift in Sources */,
+				B10000000000000000000015 /* TransactionLoadConfiguration.swift in Sources */,
 				B1000000000000000000000B /* PreviewData.swift in Sources */,
 				B1000000000000000000000C /* PreviewTransactionStore.swift in Sources */,
 			);
@@ -366,7 +394,7 @@
 				X100000000000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		L100000000000000000000002 /* Build configuration list for PBXNativeTarget "BankApp" */ = {
 			isa = XCConfigurationList;
@@ -375,7 +403,7 @@
 				X100000000000000000000004 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 

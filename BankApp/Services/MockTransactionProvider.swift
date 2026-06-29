@@ -9,12 +9,64 @@ enum MockTransactionProvider {
         "Salary Deposit", "Freelance Client", "City Utilities", "Rent Payment"
     ]
 
-    static let transactions: [Transaction] = makeTransactions()
-
-    static func makeTransactions(referenceDate: Date = .now) -> [Transaction] {
+    static func makeTransactions(
+        totalCount: Int = TransactionLoadConfiguration.totalCount,
+        referenceDate: Date = .now
+    ) -> [Transaction] {
+        let bulkCount = max(0, totalCount - 1)
         let exemplar = makeExemplarTransaction()
-        let bulk = generateBulk(count: 120, referenceDate: referenceDate)
+        let bulk = generateBulk(count: bulkCount, referenceDate: referenceDate)
         return ([exemplar] + bulk).sorted { $0.date > $1.date }
+    }
+
+    static func transactionStream(
+        totalCount: Int,
+        batchSize: Int,
+        simulatedDelay: Duration = .zero
+    ) -> AsyncStream<TransactionBatch> {
+        AsyncStream { continuation in
+            let task = Task.detached(priority: .userInitiated) {
+                let allTransactions = makeTransactions(totalCount: totalCount)
+                let total = allTransactions.count
+                var loadedCount = 0
+
+                var batchStart = allTransactions.startIndex
+                while batchStart < allTransactions.endIndex {
+                    if Task.isCancelled {
+                        continuation.finish()
+                        return
+                    }
+
+                    let batchEnd = allTransactions.index(
+                        batchStart,
+                        offsetBy: batchSize,
+                        limitedBy: allTransactions.endIndex
+                    ) ?? allTransactions.endIndex
+                    let batch = Array(allTransactions[batchStart..<batchEnd])
+                    loadedCount += batch.count
+
+                    continuation.yield(
+                        TransactionBatch(
+                            transactions: batch,
+                            loadedCount: loadedCount,
+                            totalCount: total
+                        )
+                    )
+
+                    batchStart = batchEnd
+
+                    if simulatedDelay > .zero, batchStart < allTransactions.endIndex {
+                        try? await Task.sleep(for: simulatedDelay)
+                    }
+                }
+
+                continuation.finish()
+            }
+
+            continuation.onTermination = { _ in
+                task.cancel()
+            }
+        }
     }
 
     private static func makeExemplarTransaction() -> Transaction {
