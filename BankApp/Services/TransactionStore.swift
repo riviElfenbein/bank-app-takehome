@@ -13,8 +13,8 @@ final class TransactionStore {
         transactions.first { $0.id == id }
     }
 
-    func updateRecipientName(id: Transaction.ID, name: String) {
+    func updateTransaction(id: Transaction.ID, _ mutate: (inout Transaction) -> Void) {
         guard let index = transactions.firstIndex(where: { $0.id == id }) else { return }
-        transactions[index].recipientName = name
+        mutate(&transactions[index])
     }
 }

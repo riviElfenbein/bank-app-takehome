@@ -47,3 +47,20 @@ extension Decimal {
         Decimal(string: String(format: "%.2f", value)) ?? Decimal(value)
     }
 }
+
+extension Money {
+    static func parse(from formatted: String) -> Money? {
+        let trimmed = formatted.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return nil }
+
+        let isNegative = trimmed.contains("-")
+        let cleaned = trimmed
+            .replacingOccurrences(of: "$", with: "")
+            .replacingOccurrences(of: "+", with: "")
+            .replacingOccurrences(of: "-", with: "")
+            .replacingOccurrences(of: ",", with: "")
+
+        guard let value = Decimal(string: cleaned) else { return nil }
+        return Money(amount: isNegative ? -value : value)
+    }
+}

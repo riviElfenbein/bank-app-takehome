@@ -12,6 +12,13 @@ struct TransactionDetailView: View {
         return formatter
     }()
 
+    private static let completedFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_GB")
+        formatter.dateFormat = "d MMMM HH:mm"
+        return formatter
+    }()
+
     var body: some View {
         Group {
             if let transaction = store.transaction(id: transactionID) {
@@ -32,41 +39,57 @@ struct TransactionDetailView: View {
     private func detailContent(for transaction: Transaction) -> some View {
         ScrollView {
             VStack(spacing: 0) {
-                DSStatusHeader(
-                    statusTitle: transaction.status.displayTitle,
-                    summary: summary(for: transaction)
+                DSPerformedHeader(
+                    recipientName: transaction.recipientName,
+                    formattedAmount: heroAmount(for: transaction),
+                    commissionText: commissionText(for: transaction),
+                    completedText: completedText(for: transaction)
                 )
 
                 DSCardSurface {
                     VStack(spacing: 0) {
                         DSSectionHeader(title: "Operation details")
 
-                        withdrawalAccountRow(for: transaction)
-                        recipientNameField(for: transaction)
+                        DSLabeledField(
+                            label: "Withdrawal account",
+                            text: withdrawalLabelBinding(for: transaction.id)
+                        )
 
-                        DSLabeledRow(
+                        withdrawalLast4Field(for: transaction)
+
+                        DSLabeledField(
+                            label: "Name of the recipient",
+                            text: stringBinding(for: transaction.id, keyPath: \.recipientName)
+                        )
+
+                        DSLabeledField(
                             label: "Recipient's phone",
-                            value: transaction.recipientPhone
+                            text: stringBinding(for: transaction.id, keyPath: \.recipientPhone)
                         )
-                        DSLabeledRow(
+
+                        DSLabeledField(
                             label: "Beneficiary's card number",
-                            value: "· \(transaction.beneficiaryCardLast4)"
+                            text: beneficiaryCardBinding(for: transaction.id)
                         )
-                        DSLabeledRow(
+
+                        DSLabeledField(
                             label: "Transfer amount",
-                            value: transaction.amount.formatted
+                            text: moneyBinding(for: transaction.id, keyPath: \.amount)
                         )
-                        DSLabeledRow(
+
+                        DSLabeledField(
                             label: "Commission",
-                            value: transaction.commission.formatted
+                            text: moneyBinding(for: transaction.id, keyPath: \.commission)
                         )
-                        DSLabeledRow(
+
+                        DSLabeledField(
                             label: "Operation number",
-                            value: transaction.operationNumber
+                            text: stringBinding(for: transaction.id, keyPath: \.operationNumber)
                         )
-                        DSLabeledRow(
+
+                        DSLabeledField(
                             label: "Date",
-                            value: Self.dateFormatter.string(from: transaction.date)
+                            text: dateBinding(for: transaction.id)
                         )
                     }
                 }
@@ -74,40 +97,97 @@ struct TransactionDetailView: View {
         }
     }
 
-    private func summary(for transaction: Transaction) -> String {
-        let amountText = transaction.amount.formatted.replacingOccurrences(of: "-", with: "")
-        return "\(amountText) → \(transaction.recipientName)"
+    private func heroAmount(for transaction: Transaction) -> String {
+        transaction.amount.formatted.replacingOccurrences(of: "-", with: "")
     }
 
-    private func withdrawalAccountRow(for transaction: Transaction) -> some View {
-        DSLabeledRow(
-            label: "Withdrawal account",
-            value: transaction.withdrawalAccount.label
-        ) {
-            HStack(spacing: 8) {
-                if transaction.withdrawalAccount.brand == .visa {
-                    DSIconBadge(systemName: "creditcard", style: .visa)
-                }
-                Text("· \(transaction.withdrawalAccount.last4)")
-                    .font(DSTypography.caption())
-                    .foregroundStyle(DSColors.labelSecondary)
+    private func commissionText(for transaction: Transaction) -> String {
+        if transaction.commission.amount == 0 {
+            return "No commission"
+        }
+        return "Commission: \(transaction.commission.formatted)"
+    }
+
+    private func completedText(for transaction: Transaction) -> String {
+        let dateText = Self.completedFormatter.string(from: transaction.date)
+        return "\(transaction.status.displayTitle), \(dateText)"
+    }
+
+    @ViewBuilder
+    private func withdrawalLast4Field(for transaction: Transaction) -> some View {
+        HStack(spacing: 8) {
+            DSLabeledField(
+                label: "Card last four digits",
+                text: withdrawalLast4Binding(for: transaction.id)
+            )
+
+            if transaction.withdrawalAccount.brand == .visa {
+                DSIconBadge(systemName: "creditcard", style: .visa)
+                    .padding(.top, 20)
             }
         }
     }
 
-    private func recipientNameField(for transaction: Transaction) -> some View {
-        DSLabeledField(
-            label: "Name of the recipient",
-            text: recipientNameBinding(for: transaction.id)
+    private func stringBinding(for id: Transaction.ID, keyPath: WritableKeyPath<Transaction, String>) -> Binding<String> {
+        Binding(
+            get: { store.transaction(id: id)?[keyPath: keyPath] ?? "" },
+            set: { newValue in
+                store.updateTransaction(id: id) { $0[keyPath: keyPath] = newValue }
+            }
         )
-        .accessibilityLabel("Name of the recipient")
-        .accessibilityHint("Editable transaction name")
     }
 
-    private func recipientNameBinding(for id: Transaction.ID) -> Binding<String> {
+    private func moneyBinding(for id: Transaction.ID, keyPath: WritableKeyPath<Transaction, Money>) -> Binding<String> {
         Binding(
-            get: { store.transaction(id: id)?.recipientName ?? "" },
-            set: { store.updateRecipientName(id: id, name: $0) }
+            get: { store.transaction(id: id)?[keyPath: keyPath].formatted ?? "" },
+            set: { newValue in
+                guard let money = Money.parse(from: newValue) else { return }
+                store.updateTransaction(id: id) { $0[keyPath: keyPath] = money }
+            }
+        )
+    }
+
+    private func dateBinding(for id: Transaction.ID) -> Binding<String> {
+        Binding(
+            get: {
+                guard let date = store.transaction(id: id)?.date else { return "" }
+                return Self.dateFormatter.string(from: date)
+            },
+            set: { newValue in
+                guard let date = Self.dateFormatter.date(from: newValue) else { return }
+                store.updateTransaction(id: id) { $0.date = date }
+            }
+        )
+    }
+
+    private func beneficiaryCardBinding(for id: Transaction.ID) -> Binding<String> {
+        Binding(
+            get: {
+                guard let last4 = store.transaction(id: id)?.beneficiaryCardLast4 else { return "" }
+                return "· \(last4)"
+            },
+            set: { newValue in
+                let digits = newValue.replacingOccurrences(of: "·", with: "").trimmingCharacters(in: .whitespaces)
+                store.updateTransaction(id: id) { $0.beneficiaryCardLast4 = digits }
+            }
+        )
+    }
+
+    private func withdrawalLabelBinding(for id: Transaction.ID) -> Binding<String> {
+        Binding(
+            get: { store.transaction(id: id)?.withdrawalAccount.label ?? "" },
+            set: { newValue in
+                store.updateTransaction(id: id) { $0.withdrawalAccount.label = newValue }
+            }
+        )
+    }
+
+    private func withdrawalLast4Binding(for id: Transaction.ID) -> Binding<String> {
+        Binding(
+            get: { store.transaction(id: id)?.withdrawalAccount.last4 ?? "" },
+            set: { newValue in
+                store.updateTransaction(id: id) { $0.withdrawalAccount.last4 = newValue }
+            }
         )
     }
 }
