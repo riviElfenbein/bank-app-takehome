@@ -2,21 +2,7 @@ import BankDesignSystem
 import SwiftUI
 
 struct TransactionDetailView: View {
-    @Environment(TransactionStore.self) private var store
-
-    let transactionID: Transaction.ID
-
-    var body: some View {
-        TransactionDetailScreen(store: store, transactionID: transactionID)
-    }
-}
-
-private struct TransactionDetailScreen: View {
-    @State private var model: TransactionDetailModel
-
-    init(store: TransactionStore, transactionID: Transaction.ID) {
-        _model = State(initialValue: TransactionDetailModel(store: store, transactionID: transactionID))
-    }
+    @Bindable var model: TransactionDetailModel
 
     var body: some View {
         Group {
@@ -33,6 +19,9 @@ private struct TransactionDetailScreen: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .dsScreenBackground()
+        .onDisappear {
+            model.commit()
+        }
     }
 }
 
@@ -55,13 +44,13 @@ private struct TransactionDetailContent: View {
 
                         DSLabeledField(
                             label: "Withdrawal account",
-                            text: model.withdrawalLabelBinding
+                            text: $model.draftWithdrawalLabel
                         )
 
                         HStack(spacing: 8) {
                             DSLabeledField(
                                 label: "Card last four digits",
-                                text: model.withdrawalLast4Binding
+                                text: $model.draftWithdrawalLast4
                             )
 
                             if model.showsVisaBadge {
@@ -72,37 +61,37 @@ private struct TransactionDetailContent: View {
 
                         DSLabeledField(
                             label: "Name of the recipient",
-                            text: model.recipientNameBinding
+                            text: $model.draftRecipientName
                         )
 
                         DSLabeledField(
                             label: "Recipient's phone",
-                            text: model.recipientPhoneBinding
+                            text: $model.draftRecipientPhone
                         )
 
                         DSLabeledField(
                             label: "Beneficiary's card number",
-                            text: model.beneficiaryCardBinding
+                            text: $model.draftBeneficiaryCard
                         )
 
                         DSLabeledField(
                             label: "Transfer amount",
-                            text: model.amountBinding
+                            text: $model.draftAmount
                         )
 
                         DSLabeledField(
                             label: "Commission",
-                            text: model.commissionBinding
+                            text: $model.draftCommission
                         )
 
                         DSLabeledField(
                             label: "Operation number",
-                            text: model.operationNumberBinding
+                            text: $model.draftOperationNumber
                         )
 
                         DSLabeledField(
                             label: "Date",
-                            text: model.dateBinding
+                            text: $model.draftDate
                         )
                     }
                 }
@@ -114,8 +103,10 @@ private struct TransactionDetailContent: View {
 #Preview {
     NavigationStack {
         TransactionDetailView(
-            transactionID: PreviewData.sampleTransactionID
+            model: TransactionDetailModel(
+                repository: PreviewTransactionStore.make(),
+                transactionID: PreviewData.sampleTransactionID
+            )
         )
     }
-    .environment(PreviewTransactionStore.make())
 }

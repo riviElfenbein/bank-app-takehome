@@ -1,15 +1,70 @@
 import Observation
-import SwiftUI
 
+struct DetailDraftSnapshot: Equatable {
+    var withdrawalLabel: String
+    var withdrawalLast4: String
+    var recipientName: String
+    var recipientPhone: String
+    var beneficiaryCard: String
+    var amount: String
+    var commission: String
+    var operationNumber: String
+    var date: String
+
+    static let empty = DetailDraftSnapshot(
+        withdrawalLabel: "",
+        withdrawalLast4: "",
+        recipientName: "",
+        recipientPhone: "",
+        beneficiaryCard: "",
+        amount: "",
+        commission: "",
+        operationNumber: "",
+        date: ""
+    )
+
+    init(from transaction: Transaction) {
+        withdrawalLabel = transaction.withdrawalAccount.label
+        withdrawalLast4 = transaction.withdrawalAccount.last4
+        recipientName = transaction.recipientName
+        recipientPhone = transaction.recipientPhone
+        beneficiaryCard = TransactionFormatters.beneficiaryCardDisplay(last4: transaction.beneficiaryCardLast4)
+        amount = transaction.amount.formatted
+        commission = transaction.commission.formatted
+        operationNumber = transaction.operationNumber
+        date = TransactionFormatters.detailDate(transaction.date)
+    }
+}
+
+@MainActor
 @Observable
 final class TransactionDetailModel {
     let transactionID: Transaction.ID
 
-    private let store: TransactionStore
+    var draftWithdrawalLabel = ""
+    var draftWithdrawalLast4 = ""
+    var draftRecipientName = ""
+    var draftRecipientPhone = ""
+    var draftBeneficiaryCard = ""
+    var draftAmount = ""
+    var draftCommission = ""
+    var draftOperationNumber = ""
+    var draftDate = ""
 
-    init(store: TransactionStore, transactionID: Transaction.ID) {
-        self.store = store
+    private let repository: TransactionStore
+    private let committedSnapshot: DetailDraftSnapshot
+
+    init(repository: TransactionStore, transactionID: Transaction.ID) {
+        self.repository = repository
         self.transactionID = transactionID
+
+        if let transaction = repository.transaction(id: transactionID) {
+            let snapshot = DetailDraftSnapshot(from: transaction)
+            committedSnapshot = snapshot
+            loadDraft(from: snapshot)
+        } else {
+            committedSnapshot = .empty
+        }
     }
 
     var isAvailable: Bool {
@@ -17,109 +72,115 @@ final class TransactionDetailModel {
     }
 
     var recipientName: String {
-        transaction?.recipientName ?? ""
+        draftRecipientName
     }
 
     var heroAmountText: String {
-        transaction?.heroAmountText ?? ""
+        if let money = Money.parse(from: draftAmount) {
+            return TransactionFormatters.heroAmount(money)
+        }
+        return draftAmount.replacingOccurrences(of: "-", with: "")
     }
 
     var commissionText: String {
-        transaction?.commissionDisplayText ?? ""
+        if let money = Money.parse(from: draftCommission) {
+            return TransactionFormatters.commissionText(money)
+        }
+        if draftCommission.isEmpty {
+            return TransactionFormatters.commissionText(Money(amount: 0))
+        }
+        return draftCommission
     }
 
     var completedText: String {
-        transaction?.completedDisplayText ?? ""
+        guard let transaction else { return "" }
+        let date = TransactionFormatters.parseDetailDate(draftDate) ?? transaction.date
+        return TransactionFormatters.completedText(date: date, status: transaction.status)
     }
 
     var showsVisaBadge: Bool {
         transaction?.withdrawalAccount.brand == .visa
     }
 
-    var withdrawalLabelBinding: Binding<String> {
-        Binding(
-            get: { self.transaction?.withdrawalAccount.label ?? "" },
-            set: { newValue in
-                self.store.updateTransaction(id: self.transactionID) { $0.withdrawalAccount.label = newValue }
+    func commit() {
+        guard isAvailable else { return }
+        guard hasUncommittedChanges else { return }
+
+        repository.updateTransaction(id: transactionID) { transaction in
+            transaction.withdrawalAccount.label = draftWithdrawalLabel
+            transaction.withdrawalAccount.last4 = draftWithdrawalLast4
+            transaction.recipientName = draftRecipientName
+            transaction.recipientPhone = draftRecipientPhone
+            transaction.beneficiaryCardLast4 = TransactionFormatters.parseBeneficiaryCardLast4(draftBeneficiaryCard)
+            transaction.operationNumber = draftOperationNumber
+
+            if let amount = Money.parse(from: draftAmount) {
+                transaction.amount = amount
             }
-        )
-    }
-
-    var withdrawalLast4Binding: Binding<String> {
-        Binding(
-            get: { self.transaction?.withdrawalAccount.last4 ?? "" },
-            set: { newValue in
-                self.store.updateTransaction(id: self.transactionID) { $0.withdrawalAccount.last4 = newValue }
+            if let commission = Money.parse(from: draftCommission) {
+                transaction.commission = commission
             }
-        )
-    }
-
-    var recipientNameBinding: Binding<String> {
-        stringBinding(keyPath: \.recipientName)
-    }
-
-    var recipientPhoneBinding: Binding<String> {
-        stringBinding(keyPath: \.recipientPhone)
-    }
-
-    var beneficiaryCardBinding: Binding<String> {
-        Binding(
-            get: {
-                guard let last4 = self.transaction?.beneficiaryCardLast4 else { return "" }
-                return "· \(last4)"
-            },
-            set: { newValue in
-                let digits = newValue.replacingOccurrences(of: "·", with: "").trimmingCharacters(in: .whitespaces)
-                self.store.updateTransaction(id: self.transactionID) { $0.beneficiaryCardLast4 = digits }
+            if let date = TransactionFormatters.parseDetailDate(draftDate) {
+                transaction.date = date
             }
-        )
-    }
-
-    var amountBinding: Binding<String> {
-        moneyBinding(keyPath: \.amount)
-    }
-
-    var commissionBinding: Binding<String> {
-        moneyBinding(keyPath: \.commission)
-    }
-
-    var operationNumberBinding: Binding<String> {
-        stringBinding(keyPath: \.operationNumber)
-    }
-
-    var dateBinding: Binding<String> {
-        Binding(
-            get: {
-                guard let date = self.transaction?.date else { return "" }
-                return Transaction.detailDateFormatter.string(from: date)
-            },
-            set: { newValue in
-                guard let date = Transaction.detailDateFormatter.date(from: newValue) else { return }
-                self.store.updateTransaction(id: self.transactionID) { $0.date = date }
-            }
-        )
+        }
     }
 
     private var transaction: Transaction? {
-        store.transaction(id: transactionID)
+        repository.transaction(id: transactionID)
     }
 
-    private func stringBinding(keyPath: WritableKeyPath<Transaction, String>) -> Binding<String> {
-        Binding(
-            get: { self.transaction?[keyPath: keyPath] ?? "" },
-            set: { newValue in
-                self.store.updateTransaction(id: self.transactionID) { $0[keyPath: keyPath] = newValue }
-            }
+    private var hasUncommittedChanges: Bool {
+        draftSnapshot != committedSnapshot
+    }
+
+    private var draftSnapshot: DetailDraftSnapshot {
+        DetailDraftSnapshot(
+            withdrawalLabel: draftWithdrawalLabel,
+            withdrawalLast4: draftWithdrawalLast4,
+            recipientName: draftRecipientName,
+            recipientPhone: draftRecipientPhone,
+            beneficiaryCard: draftBeneficiaryCard,
+            amount: draftAmount,
+            commission: draftCommission,
+            operationNumber: draftOperationNumber,
+            date: draftDate
         )
     }
 
-    private func moneyBinding(keyPath: WritableKeyPath<Transaction, Money>) -> Binding<String> {
-        Binding(
-            get: { self.transaction?[keyPath: keyPath].formatted ?? "" },
-            set: { newValue in
-                guard let money = Money.parse(from: newValue) else { return }
-                self.store.updateTransaction(id: self.transactionID) { $0[keyPath: keyPath] = money }
-            }
-        )
+    private func loadDraft(from snapshot: DetailDraftSnapshot) {
+        draftWithdrawalLabel = snapshot.withdrawalLabel
+        draftWithdrawalLast4 = snapshot.withdrawalLast4
+        draftRecipientName = snapshot.recipientName
+        draftRecipientPhone = snapshot.recipientPhone
+        draftBeneficiaryCard = snapshot.beneficiaryCard
+        draftAmount = snapshot.amount
+        draftCommission = snapshot.commission
+        draftOperationNumber = snapshot.operationNumber
+        draftDate = snapshot.date
+    }
+}
+
+private extension DetailDraftSnapshot {
+    init(
+        withdrawalLabel: String,
+        withdrawalLast4: String,
+        recipientName: String,
+        recipientPhone: String,
+        beneficiaryCard: String,
+        amount: String,
+        commission: String,
+        operationNumber: String,
+        date: String
+    ) {
+        self.withdrawalLabel = withdrawalLabel
+        self.withdrawalLast4 = withdrawalLast4
+        self.recipientName = recipientName
+        self.recipientPhone = recipientPhone
+        self.beneficiaryCard = beneficiaryCard
+        self.amount = amount
+        self.commission = commission
+        self.operationNumber = operationNumber
+        self.date = date
     }
 }
