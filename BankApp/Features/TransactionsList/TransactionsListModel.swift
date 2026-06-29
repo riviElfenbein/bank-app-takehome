@@ -118,25 +118,27 @@ final class TransactionsListModel {
 
     private func patchRow(for id: Transaction.ID) {
         guard let transaction = repository.transaction(id: id) else { return }
-
+        
         let updatedRow = rowState(for: transaction)
         let matchesSearch = debouncedSearchText.isEmpty
-            || transaction.recipientName.localizedCaseInsensitiveContains(debouncedSearchText)
-
+        || transaction.recipientName.localizedCaseInsensitiveContains(debouncedSearchText)
+        
+            
         if let cachedIndex = rowIndexByID[id] {
             allRows[cachedIndex] = updatedRow
-            if matchesSearch {
-                if let visibleIndex = rows.firstIndex(where: { $0.id == id }) {
-                    rows[visibleIndex] = updatedRow
-                } else {
-                    applySearchFilter()
-                }
-            } else {
-                applySearchFilter()
-            }
-        } else if matchesSearch {
+        }
+
+        guard matchesSearch else {
+            applySearchFilter()
+            return
+        }
+
+        if let visibleIndex = rows.firstIndex(where: { $0.id == id }) {
+            rows[visibleIndex] = updatedRow
+        } else {
             applySearchFilter()
         }
+        
     }
 
     private func applySearchFilter() {
